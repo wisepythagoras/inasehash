@@ -150,53 +150,52 @@ char *inasehash(u64 id, char *buf)
 
 // long version, explaining what happens:  
 /*
-   char *inasehash(u64 id, char *buf)
-   {
-// turns 00000001 into kinda random 11001010 without ever creating the same value
-id = linear_congruential_generator(id);
+    char *inasehash(u64 id, char *buf)
+    {
+        // turns 00000001 into kinda random 11001010 without ever creating the same value
+        id = linear_congruential_generator(id);
 
-// lets just flip all bits because its fun
-id = ~id;
+        // lets just flip all bits because its fun
+        id = ~id;
 
-for(int i = 0; i < HASH_LENGTH; ++i)
-{
-// now we chop the 64bit id into 11 parts. 10 times 6 bit, and one time 4 bit
-// 6 bits have 64 possible combinations. Perfect for our lookup table.
+        for(int i = 0; i < HASH_LENGTH; ++i)
+        {
+            // now we chop the 64bit id into 11 parts. 10 times 6 bit, and one time 4 bit
+            // 6 bits have 64 possible combinations. Perfect for our lookup table.
 
-// shift the bits in ID i times 6. In the first loop i = 0 and nothing is shifted
-u64 tmp = id >> (i * 6);
+            // shift the bits in ID i times 6. In the first loop i = 0 and nothing is shifted
+            u64 tmp = id >> (i * 6);
 
-// we only need the last 6 bytes so we cut them off. 
-// Results in a number always between 0 an 63 :)
-u64 pos = tmp & 0x3F;   // 0x3F = 00111111
+            // we only need the last 6 bytes so we cut them off. 
+            // Results in a number always between 0 an 63 :)
+            u64 pos = tmp & 0x3F;   // 0x3F = 00111111
 
-// Warning C does know the differnece between arithmetic shift and logic shift.
-// Does your language? PHP for example does not!! So if you programm this in 
-// PHP or so your last line must look like this
-// u64 pos = tmp & ((i < HASH_LENGTH) ? 0x3F : 0x0F);   // 0x3F in binary: 00111111, 0x0F in binary 00001111
-// this will keep left inserted sign bits 0 in the last iteration. For more information:
-// https://en.wikipedia.org/wiki/Arithmetic_shift
+            // Warning C does know the differnece between arithmetic shift and logic shift.
+            // Does your language? PHP for example does not!! So if you programm this in 
+            // PHP or so your last line must look like this
+            // u64 pos = tmp & ((i < HASH_LENGTH) ? 0x3F : 0x0F);   // 0x3F in binary: 00111111, 0x0F in binary 00001111
+            // this will keep left inserted sign bits 0 in the last iteration. For more information:
+            // https://en.wikipedia.org/wiki/Arithmetic_shift
 
-// Copy the corrosponding chracter from the lookup table into the result string
-buf[i] = lookup_table[pos];
-}
+            // Copy the corrosponding chracter from the lookup table into the result string
+            buf[i] = lookup_table[pos];
+        }
 
-// the same code more compact, C knows not to use arithmetic shift on unsigned integers
-// for(int i = 0; i < HASH_LENGTH; ++i, id >>= 6 )
-// buf[i] = lookup_table[ id & 0x3F ];
+        // the same code more compact, C knows not to use arithmetic shift on unsigned integers
+        // for(int i = 0; i < HASH_LENGTH; ++i, id >>= 6 )
+        // buf[i] = lookup_table[ id & 0x3F ];
+
+        // the same code more compact, with arithmetic shift protection. Implement this code in
+        // other languages which do not have logic shift un unsigned integers. PHP for example
+        // for(int i = 0; i < HASH_LENGTH-1; ++i, id >>= 6 )
+        // buf[i] = lookup_table[ id & 0x3F ];
+        // buf[10] = lookup_table[ id & 0x0F ];
 
 
-// the same code more compact, with arithmetic shift protection. Implement this code in
-// other languages which do not have logic shift un unsigned integers. PHP for example
-// for(int i = 0; i < HASH_LENGTH-1; ++i, id >>= 6 )
-// buf[i] = lookup_table[ id & 0x3F ];
-// buf[10] = lookup_table[ id & 0x0F ];
-
-
-// this is a C string, so we need an zero byte at the end or horrible things will happen
-buf[HASH_LENGTH] = '\0';
-return buf;
-}
+        // this is a C string, so we need an zero byte at the end or horrible things will happen
+        buf[HASH_LENGTH] = '\0';
+        return buf;
+    }
 */
 
 
@@ -205,28 +204,28 @@ return buf;
 
 /* GENERATE THE REVERSE LOOKUP TABLE WITH THIS PYTHON 3 SCRIPT:
 
-   mapping = [ 'I','N','A','S','E','i','r','F',
-   'n','M','b','T','W','f','G','Q',
-   'a','O','4','B','v','c','h','K',
-   's','0','7','5','6','D','q','z',
-   'e','V','C','X','3','8','9','R',
-   'o','k','m','U','Y','p','x','1',
-   'J','Z','l','t','2','y','j','d',
-   'P','L','H','w','-','_','u','g' ]
+    mapping = [ 'I','N','A','S','E','i','r','F',
+                'n','M','b','T','W','f','G','Q',
+                'a','O','4','B','v','c','h','K',
+                's','0','7','5','6','D','q','z',
+                'e','V','C','X','3','8','9','R',
+                'o','k','m','U','Y','p','x','1',
+                'J','Z','l','t','2','y','j','d',
+                'P','L','H','w','-','_','u','g' ]
 
-   res = []
+    res = []
 
-   for i in range(0, 256):
-try:
-value = mapping.index(chr(i))
-res.append("0x" + format(value, '02x'))
-except:
-res.append("0x00")
+    for i in range(0, 256):
+    try:
+        value = mapping.index(chr(i))
+        res.append("0x" + format(value, '02x'))
+    except:
+        res.append("0x00")
 
-if i % 8 == 0:
-res[-1] = "\n    " + res[-1]
+    if i % 8 == 0:
+        res[-1] = "\n    " + res[-1]
 
-print("{" + ", ".join(res) + "\n}")
+    print("{" + ", ".join(res) + "\n}")
 
 */
 
