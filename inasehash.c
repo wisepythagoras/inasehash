@@ -150,52 +150,47 @@ char *inasehash(u64 id, char *buf)
 
 // long version, explaining what happens:  
 /*
-    char *inasehash(u64 id, char *buf)
+char *inasehash(u64 id, char *buf)
+{
+    // turns 00000001 into kinda random 11001010 without ever creating the same value
+    id = linear_congruential_generator(id);
+
+    // lets just flip all bits because its fun
+    id = ~id;
+
+    for(int i = 0; i < HASH_LENGTH; ++i)
     {
-        // turns 00000001 into kinda random 11001010 without ever creating the same value
-        id = linear_congruential_generator(id);
+        // now we chop the 64bit id into 11 parts. 10 times 6 bit, and one time 4 bit
+        // 6 bits have 64 possible combinations. Perfect for the lookup table.
 
-        // lets just flip all bits because its fun
-        id = ~id;
+        // shift the bits in ID i times 6. In the first loop i = 0 and nothing is shifted
+        u64 tmp = id >> (i * 6);
 
-        for(int i = 0; i < HASH_LENGTH; ++i)
-        {
-            // now we chop the 64bit id into 11 parts. 10 times 6 bit, and one time 4 bit
-            // 6 bits have 64 possible combinations. Perfect for our lookup table.
+        // we only need the last 6 bytes so we cut them off. 
+        // Results in a number always between 0 an 63 :)
+        u64 pos = tmp & 0x3F;   // 0x3F = 00111111
 
-            // shift the bits in ID i times 6. In the first loop i = 0 and nothing is shifted
-            u64 tmp = id >> (i * 6);
+        // Warning! C does know the differnece between arithmetic shift and logic shift.
+        // Does your language? PHP for example does not. So if you port this to PHP or so,
+        // the last line must look like this
+        // u64 pos = tmp & ((i < HASH_LENGTH) ? 0x3F : 0x0F);   // 0x3F in binary: 00111111, 0x0F in binary 00001111
+        // this will keep left inserted sign bits 0 in the last iteration. For more information:
+        // https://en.wikipedia.org/wiki/Arithmetic_shift
 
-            // we only need the last 6 bytes so we cut them off. 
-            // Results in a number always between 0 an 63 :)
-            u64 pos = tmp & 0x3F;   // 0x3F = 00111111
-
-            // Warning C does know the differnece between arithmetic shift and logic shift.
-            // Does your language? PHP for example does not!! So if you programm this in 
-            // PHP or so your last line must look like this
-            // u64 pos = tmp & ((i < HASH_LENGTH) ? 0x3F : 0x0F);   // 0x3F in binary: 00111111, 0x0F in binary 00001111
-            // this will keep left inserted sign bits 0 in the last iteration. For more information:
-            // https://en.wikipedia.org/wiki/Arithmetic_shift
-
-            // Copy the corrosponding chracter from the lookup table into the result string
-            buf[i] = lookup_table[pos];
-        }
-
-        // the same code more compact, C knows not to use arithmetic shift on unsigned integers
-        // for(int i = 0; i < HASH_LENGTH; ++i, id >>= 6 )
-        // buf[i] = lookup_table[ id & 0x3F ];
-
-        // the same code more compact, with arithmetic shift protection. Implement this code in
-        // other languages which do not have logic shift un unsigned integers. PHP for example
-        // for(int i = 0; i < HASH_LENGTH-1; ++i, id >>= 6 )
-        // buf[i] = lookup_table[ id & 0x3F ];
-        // buf[10] = lookup_table[ id & 0x0F ];
-
-
-        // this is a C string, so we need an zero byte at the end or horrible things will happen
-        buf[HASH_LENGTH] = '\0';
-        return buf;
+        // Copy the corrosponding chracter from the lookup table into the result string
+        buf[i] = lookup_table[pos];
     }
+
+    // the same code more compact, with arithmetic shift protection. Implement this code in
+    // other languages which do not have logic shift on unsigned integers. PHP for example
+    // for(int i = 0; i < HASH_LENGTH-1; ++i, id >>= 6 )
+    //     buf[i] = lookup_table[ id & 0x3F ];
+    // buf[10] = lookup_table[ id & 0x0F ];
+
+    // This is a C string, so we need a zero byte at the end or horrible things will happen
+    buf[HASH_LENGTH] = '\0';
+    return buf;
+}
 */
 
 
