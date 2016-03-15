@@ -78,7 +78,7 @@ u64 lcg(u64 input)
 
 u64 lcgr(u64 input)
 {
-	u64 ii = 13877824140714322085U;
+    u64 ii = 13877824140714322085U;
     return (input - 1442695040888963407) * ii;
 }
 
@@ -99,50 +99,50 @@ char *int2bin(u64 u)
 
 // int main(int argc, char** argv) 
 // {
-	// // u64 i = 0;
+// // u64 i = 0;
 
-	// for(u64 i = 0; i < 100; i++ )
-	// {
-		// if(i % 1000000000 == 0)
-		// {
-			// printf(".");
-			// fflush(stdout);
-		// }
+// for(u64 i = 0; i < 100; i++ )
+// {
+// if(i % 1000000000 == 0)
+// {
+// printf(".");
+// fflush(stdout);
+// }
 
-		// u64 j = lcgr(lcg(i));
-		// if (i != j) 
-		// {
-			// printf("Meh i: %"PRIu64" j: %"PRIu64"\n", i, j);
-			// printf("I: %s\n", int2bin(i));
-			// printf("J: %s\n", int2bin(j));
-			// break;
-		// }
-	// }
+// u64 j = lcgr(lcg(i));
+// if (i != j) 
+// {
+// printf("Meh i: %"PRIu64" j: %"PRIu64"\n", i, j);
+// printf("I: %s\n", int2bin(i));
+// printf("J: %s\n", int2bin(j));
+// break;
+// }
+// }
 // }
 
 int collision_test() 
 {
-	trie *t = NULL;
-	char buf[100];
+    trie *t = NULL;
+    char buf[100];
 
-	for(u64 i = 1; i <= 10000000000000; ++i)
-	{
-		if( i && i % 100000 == 0){
-			// printf(".");
-			printf("Database ID: %10"PRIu64"  Bit Matrix: %s  Hash: %s\n", i, int2bin(~linear_congruential_generator(i)), inasehash(i, buf));
-			fflush(stdout);
-		}
-		char *tmp = inasehash(i, buf);
+    for(u64 i = 1; i <= 10000000000000; ++i)
+    {
+        if( i && i % 100000 == 0){
+            // printf(".");
+            printf("Database ID: %10"PRIu64"  Bit Matrix: %s  Hash: %s\n", i, int2bin(~linear_congruential_generator(i)), inasehash(i, buf));
+            fflush(stdout);
+        }
+        char *tmp = inasehash(i, buf);
 
-		if(search(t, tmp, 0))
-		{
-			printf("\n DAMN! a collision at:%"PRIu64"\n Hash: %s", i, tmp);
-			return EXIT_FAILURE;
-		}
-		insert(&t, tmp, 0);
-	}
-	
-	return EXIT_SUCCESS;
+        if(search(t, tmp, 0))
+        {
+            printf("\n DAMN! a collision at:%"PRIu64"\n Hash: %s", i, tmp);
+            return EXIT_FAILURE;
+        }
+        insert(&t, tmp, 0);
+    }
+
+    return EXIT_SUCCESS;
 }
 
 
@@ -151,12 +151,12 @@ int unhash_test()
 {
     u64 ran = time(NULL);
 
-	for(u64 i = 1; i <= 10000000000000; ++i)
-	{
-		if( i % 1000000 == 0)
+    for(u64 i = 1; i <= 10000000000000; ++i)
+    {
+        if( i % 1000000 == 0)
         {
-			printf(".");
-			fflush(stdout);
+            printf(".");
+            fflush(stdout);
         }
 
         ran = linear_congruential_generator(ran);
@@ -165,19 +165,19 @@ int unhash_test()
 
         if (!is_valid_hash_string(hash)) 
         {
-			printf("\n DAMN! non valid hash string created at:%"PRIu64"\n with Hash: %s", ran, hash);
-			return EXIT_FAILURE;
+            printf("\n DAMN! non valid hash string created at:%"PRIu64"\n with Hash: %s", ran, hash);
+            return EXIT_FAILURE;
         }
 
         u64 result = inaseunhash(hash);
 
         if (ran != result) 
         {
-			printf("\n DAMN! ununhashable value at:%"PRIu64"\n with Hash: %s", ran, hash);
-			return EXIT_FAILURE;
+            printf("\n DAMN! ununhashable value at:%"PRIu64"\n with Hash: %s", ran, hash);
+            return EXIT_FAILURE;
         }
     }
-	
+
     return EXIT_SUCCESS;
 }
 
